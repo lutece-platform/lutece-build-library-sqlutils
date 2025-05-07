@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+	<properties>
+		<title>Library SQl Utils</title>
+	</properties>
+	<body>
+		<section name="Library SQl Utils">
+			<subsection name="Introduction">
+				<p>
+					This library provides services for managing SQL scripts in Lutece projects.
+				</p>
+			</subsection>
+		</section>
+	</body>
+</document>

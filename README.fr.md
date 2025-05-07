@@ -3,11 +3,9 @@
 [![Line of code](https://dev.lutece.paris.fr/sonar/api/project_badges/measure?project=fr.paris.lutece.plugins%3Alibrary-sql-utils&metric=ncloc)](https://dev.lutece.paris.fr/sonar/dashboard?id=fr.paris.lutece.plugins%3Alibrary-sql-utils)
 [![Coverage](https://dev.lutece.paris.fr/sonar/api/project_badges/measure?project=fr.paris.lutece.plugins%3Alibrary-sql-utils&metric=coverage)](https://dev.lutece.paris.fr/sonar/dashboard?id=fr.paris.lutece.plugins%3Alibrary-sql-utils)
 
-# Library SQl Utils
+# Introduction
 
-## Introduction
-
-This library provides services for managing SQL scripts in Lutece projects.
+La bibliothèque Lutece Build - SQL Utils fournit des classes et des méthodes pour faciliter la gestion des scripts sql.
 
 
 [Maven documentation and reports](https://dev.lutece.paris.fr/plugins/library-sql-utils/)

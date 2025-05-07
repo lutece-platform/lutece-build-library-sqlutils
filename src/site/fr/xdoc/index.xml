@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+    <properties>
+        <title>Bibliothèque Lutece Build - SQL Utils</title>
+    </properties>
+    <body>
+        <section name="Introduction">
+            <p>
+                La bibliothèque Lutece Build - SQL Utils fournit des classes et des méthodes pour faciliter la gestion des scripts sql.
+            </p>
+        </section>
+        
+    </body>
+</document>
