@@ -12,28 +12,42 @@ import java.util.List;
 public class PluginVersion implements Comparable<PluginVersion>
 {
     private static final String SNAPSHOT = "-SNAPSHOT";
+    private static final List<String> UNSTABLE_SUFFIXE_VERSION = List.of("BETA", "ALPHA", "RC");
     private final List<Integer> components = new ArrayList<>();
-    private static boolean acceptSnapshots = false;
+    private boolean _isSnapshot = false;
+    private boolean _isUnstable = false;
 
-    /**
-     * Allows parsing to accept snapshots. False by default.
-     * This is a global (static) property. Not thread-safe. Must be at program startup.
-     * 
-     * When allowed, 1.0.0 and 1.0.0 are considered identical. When not allowed, snapshot parsing will fail with a runtime Exception
-     * 
-     * @param acceptSnapshots true to enable parsing with snapshots
-     */
-    public static void setAcceptSnapshots(boolean acceptSnapshots)
-    {
-        PluginVersion.acceptSnapshots = acceptSnapshots;
+    
+    public boolean isUnstable() {
+        return _isUnstable;
+    }
+
+    public void setUnstable(boolean _isUnstable) {
+        this._isUnstable = _isUnstable;
     }
 
     private PluginVersion(String version)
     {
         if (version != null)
         {
-            if (acceptSnapshots && version.endsWith(SNAPSHOT))// else : some runtime exception when parsing ints
+            if ( version.endsWith(SNAPSHOT))
+            {
+                this._isSnapshot = true;
                 version = version.substring(0, version.length() - SNAPSHOT.length());
+            }
+            else
+            {
+                for (String suffixe : UNSTABLE_SUFFIXE_VERSION)
+                {
+                    if (version.toUpperCase().contains("-" + suffixe))
+                    {
+                        this._isUnstable = true;
+                        version = version.split("-")[0];;
+                        break;
+                    }
+                }
+            }
+
             for (String element : version.split("\\."))
                 components.add(Integer.parseInt(element));
         }
@@ -82,4 +96,14 @@ public class PluginVersion implements Comparable<PluginVersion>
     {
         return components.toString();
     }
+
+   /**
+    * Indicates if this version is a snapshot
+    * @return true if this version is a snapshot
+    */ 
+   public boolean isSnapshot()
+    {
+        return _isSnapshot;
+    }
+
 }

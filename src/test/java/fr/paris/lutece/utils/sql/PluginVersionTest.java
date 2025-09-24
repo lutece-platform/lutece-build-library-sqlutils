@@ -10,6 +10,10 @@ public class PluginVersionTest
     private static final String V_1_1_1 = "1.1.1";
     private static final String V_1_0_9 = "1.0.9";
     private static final String V_1_0_10 = "1.0.10";
+    private static final String V_1_0_0_SNAPSHOT = "1.0.0-SNAPSHOT";
+    private static final String V_1_0_0_ALPHA1 = "1.0.0-alpha1";
+    private static final String V_1_0_0_BETA1 = "1.0.0-beta1";
+
 
     @Test
     public void test()
@@ -19,5 +23,11 @@ public class PluginVersionTest
         assertTrue(PluginVersion.of(V_1_1_1).compareTo(PluginVersion.of(V_1_0_10)) > 0);
         assertTrue(PluginVersion.of(V_1_0_9).compareTo(PluginVersion.of(V_1_0_10)) < 0);
         assertTrue(PluginVersion.of(V_1_0_0).compareTo(PluginVersion.of(V_1_0_9)) < 0);
+        assertTrue(PluginVersion.of(V_1_0_0_SNAPSHOT).isSnapshot());
+         assertTrue(PluginVersion.of(V_1_0_0_ALPHA1).isUnstable());
+        assertTrue(PluginVersion.of(V_1_0_0_BETA1).isUnstable());
+        assertTrue(PluginVersion.of(V_1_0_0_ALPHA1).compareTo(PluginVersion.of(V_1_0_0)) == 0);
+
+       assertTrue(PluginVersion.of(V_1_0_0_ALPHA1).compareTo(PluginVersion.of(V_1_0_0_BETA1)) == 0);
     }
 }
