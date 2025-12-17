@@ -18,7 +18,10 @@ public class SqlPathInfoTest
                 "sql/plugins/profiles/upgrades/upgrade_db_profiles-1.0.3-1.0.4.sql",
                 "sql/plugins/workflow/modules/formspdf/upgrade/update_db_workflow-formspdf-1.0.0-1.0.1.sql",
                 "sql/plugins/elasticdata-forms/plugin/create_db_elasticdata-forms.sql", "sql/plugins/forms/upgrade/update_db_forms-2.3.0-2.3.1.sql",
-                "sql/plugins/forms/modules/template/upgrade/update_db_forms_template-1.0.2-1.0.4.sql" };
+                "sql/plugins/forms/modules/template/upgrade/update_db_forms_template-1.0.2-1.0.4.sql",
+                "sql/themes/mytheme/init_db_mytheme.sql","sql/themes/mytheme/create_db_mytheme.sql",
+                "sql/themes/mytheme/upgrade/update_db_mytheme-1.0.0-1.1.0.sql"
+        };
         for (String file : files)
         {
             System.out.println("file : " + file);
@@ -78,4 +81,24 @@ public class SqlPathInfoTest
         assertEquals(info.isCreate(), true);
         assertEquals(info.getPlugin(), "core");
     }
+
+     @Test
+    public void testThemeCreate()
+    {
+        SqlPathInfo info = SqlPathInfo.parse("sql/themes/forms/init_db_theme_forms.sql");
+        assertEquals(info.isCreate(), true);
+        assertEquals(info.getTheme(), "forms");
+    }
+
+     @Test
+    public void testUpdateTheme()
+    {
+        PluginVersion v1 = PluginVersion.of("1.0.0");
+        SqlPathInfo info = SqlPathInfo.parse("sql/themes/mytheme/upgrade/update_db_mytheme-0.0.9-1.0.1.sql");
+        assertEquals(info.isCreate(), false);
+        assertEquals(info.getTheme(), "mytheme");
+        assertTrue(info.getSrcVersion().compareTo(v1) < 0);
+        assertTrue(info.getDstVersion().compareTo(v1) > 0);
+    }
+
 }

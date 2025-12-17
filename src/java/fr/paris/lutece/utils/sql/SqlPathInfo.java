@@ -12,12 +12,25 @@ public class SqlPathInfo
     private boolean create;
     /** plugin name ("core", if not a plugin) */
     private String plugin;
+    /** theme name (example : "mytheme" for themes/mytheme ) */
+    private String theme;
+    private boolean isTheme;
     /** module name (example : "template" for forms-template) */
     private String module;
     /** starting version for an update script. Only available when create is false */
     private PluginVersion srcVersion;
     /** destination version for an update script. Only available when create is false */
     private PluginVersion dstVersion;
+
+
+    public boolean isTheme()
+    {
+        return isTheme;
+    }
+    public void setTheme(boolean isTheme)
+    {
+        this.isTheme = isTheme;
+    }
 
     public boolean isCreate()
     {
@@ -27,6 +40,10 @@ public class SqlPathInfo
     public String getPlugin()
     {
         return plugin;
+    }
+    public String getTheme()
+    {
+        return theme;
     }
 
     public String getFullPluginName()
@@ -47,7 +64,7 @@ public class SqlPathInfo
     @Override
     public String toString()
     {
-        return "SqlPathInfo [create=" + create + ", plugin=" + getFullPluginName() + ", module=" + module + ", srcVersion=" + srcVersion + ", dstVersion="
+        return "SqlPathInfo [create=" + create + ", theme=" + getTheme() + ", plugin=" + getFullPluginName() + ", module=" + module + ", srcVersion=" + srcVersion + ", dstVersion="
                 + dstVersion + "]";
     }
 
@@ -69,6 +86,15 @@ public class SqlPathInfo
     private static final String SRC_VERSION_GROUP = "srcVersion";
     private static final String PLUGIN_GROUP = "plugin";
     private static final String MODULE_GROUP = "module";
+    private static final String THEME_GROUP = "theme";
+
+   //Themes
+    private static final Pattern SQL_THEME_CREATE_PATTERN =Pattern.compile(
+        "sql/themes/(?<theme>[\\p{Alnum}]+)/(init|create)[\\p{Alnum}_\\-]*\\.sql");
+
+    private static final Pattern SQL_THEME_UPDATE_PATTERN = Pattern.compile(
+            "sql/themes/(?<theme>[\\p{Alnum}]+)/upgrade/(update|upgrade)[\\p{Alnum}_\\-]+[\\-_]?(?<srcVersion>([0-9]+(\\.[0-9]+)*))[\\-_](?<dstVersion>([0-9]+(\\.[0-9]+)*))\\.sql");
+
 
     /**
      * Creates a SqlPathInfo instance from a file path
@@ -81,45 +107,67 @@ public class SqlPathInfo
         Matcher matcher = SQL_CREATE_PATTERN.matcher(sqlFilePath);
         if (matcher.matches())
         {
-            return createInfo(matcher, true);
+            return createInfo(matcher, true, false);
         }
         matcher = SQL_CORE_CREATE.matcher(sqlFilePath);
         if (matcher.matches())
         {
-            return createInfo(matcher, false);
+            return createInfo(matcher, false, false);
         }
+        matcher = SQL_THEME_CREATE_PATTERN.matcher(sqlFilePath);
+        if (matcher.matches())
+        {
+
+            return createInfo(matcher, false, true);
+        }
+
         matcher = SQL_UPDATE_PATTERN.matcher(sqlFilePath);
         if (matcher.matches())
         {
-            return updateInfo(matcher, true);
+            return updateInfo(matcher, true, false);
         }
         matcher = SQL_CORE_UPDATE.matcher(sqlFilePath);
         if (matcher.matches())
         {
-            return updateInfo(matcher, false);
+            return updateInfo(matcher, false, false);
         }
+        matcher = SQL_THEME_UPDATE_PATTERN .matcher(sqlFilePath);
+        if (matcher.matches())
+        {
+            return updateInfo(matcher, false, true);
+        }
+
+
         return null;
     }
 
-    private static SqlPathInfo basicInfo(Matcher matcher, boolean lookForModule)
+    private static SqlPathInfo basicInfo(Matcher matcher, boolean lookForModule, boolean lookForTheme)
     {
         SqlPathInfo info = new SqlPathInfo();
-        if (lookForModule)
-            info.module = matcher.group(MODULE_GROUP);
-        info.plugin = matcher.group(PLUGIN_GROUP);
+        if(lookForTheme)
+        {
+            info.theme = matcher .group(THEME_GROUP);
+            info.setTheme(true);
+        }
+        else
+        {
+            if (lookForModule)
+                info.module = matcher.group(MODULE_GROUP);
+            info.plugin = matcher.group(PLUGIN_GROUP);
+        }
+        
         return info;
     }
 
-    private static SqlPathInfo createInfo(Matcher matcher, boolean lookForModule)
+    private static SqlPathInfo createInfo(Matcher matcher, boolean lookForModule, boolean lookForTheme)
     {
-        SqlPathInfo info = basicInfo(matcher, lookForModule);
+        SqlPathInfo info = basicInfo(matcher, lookForModule,lookForTheme);
         info.create = true;
         return info;
     }
 
-    private static SqlPathInfo updateInfo(Matcher matcher, boolean lookForModule)
-    {
-        SqlPathInfo info = basicInfo(matcher, lookForModule);
+    private static SqlPathInfo updateInfo(Matcher matcher, boolean lookForModule, boolean lookForTheme) {
+        SqlPathInfo info = basicInfo(matcher, lookForModule, lookForTheme);
         info.create = false;
         info.srcVersion = PluginVersion.of(matcher.group(SRC_VERSION_GROUP));
         info.dstVersion = PluginVersion.of(matcher.group(DST_VERSION_GROUP));
