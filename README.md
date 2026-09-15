@@ -9,6 +9,41 @@
 
 This library provides services for managing SQL scripts in Lutece projects.
 
+ 
+*  `SqlPathInfo` parses a SQL script path ( `sql/plugins/<plugin>/...` ) into plugin, module or theme name, create versus update, source and target versions.
+*  `PluginVersion` compares plugin versions and detects snapshot and unstable ones.
+*  `SqlRegexpHelper` rewrites the MySQL dialect of the scripts for another database vendor.
+*  `RunAfterOrdering` computes the execution order of the scripts honouring the `runAfter` header directive.
+
+## Execution order and the runAfter directive
+
+Scripts run in alphabetical path order, except for plugins declaring, in the leading comment block of any of their scripts, that they must run after another plugin :
+
+```
+--liquibase formatted sql
+--lutece runAfter:genericattributes
+--changeset forms:init_db_generic_attributes_forms
+```
+
+The directive is plugin-scoped : all the scripts of the declaring plugin are ordered as if its directory lived under the target's directory, after the target's own scripts. Directives chain to any depth. Invalid directives (conflicting targets inside one plugin, unknown or script-less target, self reference, core, cycles) are reported and ignored, the plugin keeping its natural position. `prerun_db_*.sql` scripts are never read for directives.
+
+ `RunAfterOrdering.build(scripts, targetExists, listener)` scans every script once and exposes the sort key `keyOf(path)` . Two consumers sorting the same paths by that key produce the same sequence : this is the parity contract between the liquibase startup of plugin-liquibase and the Ant database initialization of build-config.
+
+ `fr.paris.lutece.utils.sql.ant.RunAfterResourceComparator` applies it inside Ant. It needs Ant on the classpath (provided scope, shipped by the Ant runtime) and is declared then used in a `<sort>` resource collection :
+
+```
+<typedef name="runafter" onerror="report"
+         classname="fr.paris.lutece.utils.sql.ant.RunAfterResourceComparator"
+         classpathref="runafter.classpath"/>
+
+<sort>
+    <fileset dir="${basedir}" includes="plugins/**/plugin/*.sql"/>
+    <runafter dir="${basedir}"/>
+</sort>
+```
+
+ `dir` is the `WEB-INF/sql` directory (the project basedir by default) : it is scanned once for every `*.sql` file, and resource names are taken relative to it.
+
 
 [Maven documentation and reports](https://dev.lutece.paris.fr/plugins/library-sql-utils/)
 
