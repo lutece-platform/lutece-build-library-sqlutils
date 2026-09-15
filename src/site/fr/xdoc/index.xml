@@ -8,7 +8,40 @@
             <p>
                 La bibliothèque Lutece Build - SQL Utils fournit des classes et des méthodes pour faciliter la gestion des scripts sql.
             </p>
+            <ul>
+                <li><code>SqlPathInfo</code> analyse le chemin d'un script SQL (<code>sql/plugins/&lt;plugin&gt;/...</code>) : nom du plugin, du module ou du thème, création ou mise à jour, versions source et cible.</li>
+                <li><code>PluginVersion</code> compare les versions de plugin et détecte les versions snapshot et instables.</li>
+                <li><code>SqlRegexpHelper</code> réécrit le dialecte MySQL des scripts pour un autre SGBD.</li>
+                <li><code>RunAfterOrdering</code> calcule l'ordre d'exécution des scripts en honorant la directive d'en-tête <code>runAfter</code>.</li>
+            </ul>
         </section>
-        
+        <section name="Ordre d'exécution et directive runAfter">
+            <p>
+                Les scripts s'exécutent dans l'ordre alphabétique des chemins, sauf pour les plugins qui déclarent, dans le bloc de commentaires en tête de l'un de leurs scripts, devoir s'exécuter après un autre plugin :
+            </p>
+            <pre>--liquibase formatted sql
+--lutece runAfter:genericattributes
+--changeset forms:init_db_generic_attributes_forms</pre>
+            <p>
+                La directive porte sur tout le plugin : tous ses scripts sont ordonnés comme si son répertoire vivait sous celui du plugin cible, après les scripts de la cible. Les directives s'enchaînent sans limite de profondeur. Une directive invalide (cibles contradictoires dans un même plugin, cible inconnue ou sans script, auto-référence, core, cycle) est signalée et ignorée, le plugin garde sa position naturelle. Les scripts <code>prerun_db_*.sql</code> ne sont jamais lus pour y chercher une directive.
+            </p>
+            <p>
+                <code>RunAfterOrdering.build(scripts, targetExists, listener)</code> parcourt une fois tous les scripts et expose la clé de tri <code>keyOf(path)</code>. Deux consommateurs triant les mêmes chemins par cette clé produisent la même séquence : c'est le contrat de parité entre le démarrage Liquibase de plugin-liquibase et l'initialisation Ant de build-config.
+            </p>
+            <p>
+                <code>fr.paris.lutece.utils.sql.ant.RunAfterResourceComparator</code> l'applique dans Ant. Il a besoin d'Ant sur le classpath (portée provided, fourni par l'exécution Ant) et se déclare puis s'utilise dans une collection <code>&lt;sort&gt;</code> :
+            </p>
+            <pre>&lt;typedef name="runafter" onerror="report"
+         classname="fr.paris.lutece.utils.sql.ant.RunAfterResourceComparator"
+         classpathref="runafter.classpath"/&gt;
+
+&lt;sort&gt;
+    &lt;fileset dir="${basedir}" includes="plugins/**/plugin/*.sql"/&gt;
+    &lt;runafter dir="${basedir}"/&gt;
+&lt;/sort&gt;</pre>
+            <p>
+                <code>dir</code> est le répertoire <code>WEB-INF/sql</code> (par défaut le basedir du projet) : il est parcouru une fois pour tous les fichiers <code>*.sql</code>, et les noms de ressources sont pris relativement à lui.
+            </p>
+        </section>
     </body>
 </document>

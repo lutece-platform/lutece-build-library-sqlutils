@@ -9,6 +9,40 @@
 				<p>
 					This library provides services for managing SQL scripts in Lutece projects.
 				</p>
+				<ul>
+					<li><code>SqlPathInfo</code> parses a SQL script path (<code>sql/plugins/&lt;plugin&gt;/...</code>) into plugin, module or theme name, create versus update, source and target versions.</li>
+					<li><code>PluginVersion</code> compares plugin versions and detects snapshot and unstable ones.</li>
+					<li><code>SqlRegexpHelper</code> rewrites the MySQL dialect of the scripts for another database vendor.</li>
+					<li><code>RunAfterOrdering</code> computes the execution order of the scripts honouring the <code>runAfter</code> header directive.</li>
+				</ul>
+			</subsection>
+			<subsection name="Execution order and the runAfter directive">
+				<p>
+					Scripts run in alphabetical path order, except for plugins declaring, in the leading comment block of any of their scripts, that they must run after another plugin :
+				</p>
+				<pre>--liquibase formatted sql
+--lutece runAfter:genericattributes
+--changeset forms:init_db_generic_attributes_forms</pre>
+				<p>
+					The directive is plugin-scoped : all the scripts of the declaring plugin are ordered as if its directory lived under the target's directory, after the target's own scripts. Directives chain to any depth. Invalid directives (conflicting targets inside one plugin, unknown or script-less target, self reference, core, cycles) are reported and ignored, the plugin keeping its natural position. <code>prerun_db_*.sql</code> scripts are never read for directives.
+				</p>
+				<p>
+					<code>RunAfterOrdering.build(scripts, targetExists, listener)</code> scans every script once and exposes the sort key <code>keyOf(path)</code>. Two consumers sorting the same paths by that key produce the same sequence : this is the parity contract between the liquibase startup of plugin-liquibase and the Ant database initialization of build-config.
+				</p>
+				<p>
+					<code>fr.paris.lutece.utils.sql.ant.RunAfterResourceComparator</code> applies it inside Ant. It needs Ant on the classpath (provided scope, shipped by the Ant runtime) and is declared then used in a <code>&lt;sort&gt;</code> resource collection :
+				</p>
+				<pre>&lt;typedef name="runafter" onerror="report"
+         classname="fr.paris.lutece.utils.sql.ant.RunAfterResourceComparator"
+         classpathref="runafter.classpath"/&gt;
+
+&lt;sort&gt;
+    &lt;fileset dir="${basedir}" includes="plugins/**/plugin/*.sql"/&gt;
+    &lt;runafter dir="${basedir}"/&gt;
+&lt;/sort&gt;</pre>
+				<p>
+					<code>dir</code> is the <code>WEB-INF/sql</code> directory (the project basedir by default) : it is scanned once for every <code>*.sql</code> file, and resource names are taken relative to it.
+				</p>
 			</subsection>
 		</section>
 	</body>
