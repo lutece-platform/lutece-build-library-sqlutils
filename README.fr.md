@@ -7,6 +7,41 @@
 
 La bibliothèque Lutece Build - SQL Utils fournit des classes et des méthodes pour faciliter la gestion des scripts sql.
 
+ 
+*  `SqlPathInfo` analyse le chemin d'un script SQL ( `sql/plugins/<plugin>/...` ) : nom du plugin, du module ou du thème, création ou mise à jour, versions source et cible.
+*  `PluginVersion` compare les versions de plugin et détecte les versions snapshot et instables.
+*  `SqlRegexpHelper` réécrit le dialecte MySQL des scripts pour un autre SGBD.
+*  `RunAfterOrdering` calcule l'ordre d'exécution des scripts en honorant la directive d'en-tête `runAfter` .
+
+# Ordre d'exécution et directive runAfter
+
+Les scripts s'exécutent dans l'ordre alphabétique des chemins, sauf pour les plugins qui déclarent, dans le bloc de commentaires en tête de l'un de leurs scripts, devoir s'exécuter après un autre plugin :
+
+```
+--liquibase formatted sql
+--lutece runAfter:genericattributes
+--changeset forms:init_db_generic_attributes_forms
+```
+
+La directive porte sur tout le plugin : tous ses scripts sont ordonnés comme si son répertoire vivait sous celui du plugin cible, après les scripts de la cible. Les directives s'enchaînent sans limite de profondeur. Une directive invalide (cibles contradictoires dans un même plugin, cible inconnue ou sans script, auto-référence, core, cycle) est signalée et ignorée, le plugin garde sa position naturelle. Les scripts `prerun_db_*.sql` ne sont jamais lus pour y chercher une directive.
+
+ `RunAfterOrdering.build(scripts, targetExists, listener)` parcourt une fois tous les scripts et expose la clé de tri `keyOf(path)` . Deux consommateurs triant les mêmes chemins par cette clé produisent la même séquence : c'est le contrat de parité entre le démarrage Liquibase de plugin-liquibase et l'initialisation Ant de build-config.
+
+ `fr.paris.lutece.utils.sql.ant.RunAfterResourceComparator` l'applique dans Ant. Il a besoin d'Ant sur le classpath (portée provided, fourni par l'exécution Ant) et se déclare puis s'utilise dans une collection `<sort>` :
+
+```
+<typedef name="runafter" onerror="report"
+         classname="fr.paris.lutece.utils.sql.ant.RunAfterResourceComparator"
+         classpathref="runafter.classpath"/>
+
+<sort>
+    <fileset dir="${basedir}" includes="plugins/**/plugin/*.sql"/>
+    <runafter dir="${basedir}"/>
+</sort>
+```
+
+ `dir` est le répertoire `WEB-INF/sql` (par défaut le basedir du projet) : il est parcouru une fois pour tous les fichiers `*.sql` , et les noms de ressources sont pris relativement à lui.
+
 
 [Maven documentation and reports](https://dev.lutece.paris.fr/plugins/library-sql-utils/)
 
