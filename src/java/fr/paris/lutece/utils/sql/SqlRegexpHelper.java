@@ -121,7 +121,7 @@ public class SqlRegexpHelper
 
         public SqlReplace(String regexp, String replacement)
         {
-            this.regexp = Pattern.compile(regexp);
+            this.regexp = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
             this.replacement = computeReplacement(replacement);
         }
 
