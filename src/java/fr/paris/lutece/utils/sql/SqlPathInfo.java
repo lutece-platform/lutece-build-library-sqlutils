@@ -27,7 +27,7 @@ public class SqlPathInfo
     {
         return isTheme;
     }
-    public void setTheme(boolean isTheme)
+    private void setTheme(boolean isTheme)
     {
         this.isTheme = isTheme;
     }

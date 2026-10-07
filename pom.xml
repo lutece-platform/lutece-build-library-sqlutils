@@ -1,54 +1,89 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<parent>
-          <artifactId>lutece-global-pom</artifactId>
-          <groupId>fr.paris.lutece.tools</groupId>
-          <version>8.0.3-SNAPSHOT</version>
-        </parent>
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>fr.paris.lutece.tools</groupId>
-	<artifactId>library-sql-utils</artifactId>
-	<packaging>jar</packaging>
-	<version>2.1.0-SNAPSHOT</version>
-	<name>Library SQL Utils</name>
 
- <repositories>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>fr.paris.lutece.tools</groupId>
+    <artifactId>library-sql-utils</artifactId>
+    <packaging>jar</packaging>
+    <version>2.1.0-SNAPSHOT</version>
+    <name>Library SQL Utils</name>
+
+    <!--
+        No parent, on purpose.
+
+        lutece-global-pom declares lutece-maven-plugin as a build extension, and
+        lutece-maven-plugin depends on this library. Inheriting from lutece-global-pom
+        would close the cycle
+
+            library-sql-utils -> lutece-global-pom -> lutece-maven-plugin -> library-sql-utils
+
+        and a build of this library would then load its own published jar to build itself.
+        Everything below resolves from Maven Central : keep it that way.
+    -->
+
+    <!-- src/site/**/xdoc/index.xml is the source of README.md and README.fr.md. To regenerate
+         them, xdoc2md is no longer inherited from lutece-global-pom, call it by its coordinates :
+         mvn fr.paris.lutece.tools:xdoc2md-maven-plugin:1.0.3:readme -->
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>17</maven.compiler.release>
+    </properties>
+
+    <dependencies>
+        <!-- fr.paris.lutece.utils.sql.ant only : provided, the Ant runtime that loads the
+             comparator supplies it, and it is never a transitive dependency. Version aligned
+             with the Ant embedded by the maven-antrun-plugin of lutece-global-pom. -->
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.10.15</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.14.4</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- the Lutece source layout, until now inherited from lutece-global-pom -->
+        <sourceDirectory>src/java</sourceDirectory>
+
+        <plugins>
+            <!-- pinned on purpose : the Surefire that older Maven versions default to
+                 ignores JUnit 5 tests, and says nothing -->
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.6</version>
+            </plugin>
+            <!-- pinned : the version Maven defaults to is much older. No provider is
+                 configured, so Maven SCM drives the git binary of the machine (gitexe) -->
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>3.3.1</version>
+            </plugin>
+        </plugins>
+    </build>
+
+    <scm>
+        <connection>scm:git:https://github.com/lutece-platform/lutece-build-library-sqlutils.git</connection>
+        <developerConnection>scm:git:https://github.com/lutece-platform/lutece-build-library-sqlutils.git</developerConnection>
+        <url>https://github.com/lutece-platform/lutece-build-library-sqlutils.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
         <repository>
-            <id>luteceSnapshot</id>
-            <name>luteceSnapshot</name>
-            <url>https://dev.lutece.paris.fr/snapshot_repository</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
+            <id>lutece_releases_repository</id>
+            <url>https://dev.lutece.paris.fr/nexus/content/repositories/lutece_releases_repository</url>
         </repository>
-        <repository>
-            <id>lutece</id>
-            <name>luteceRepository</name>
-            <url>https://dev.lutece.paris.fr/maven_repository</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-	
-	<dependencies>
-		<!-- fr.paris.lutece.utils.sql.ant only : version and provided scope managed by lutece-global-pom (ant.version),
-		     never a transitive dependency -->
-		<dependency>
-			<groupId>org.apache.ant</groupId>
-			<artifactId>ant</artifactId>
-		</dependency>
-		<!-- version managed by the junit-bom of lutece-global-pom -->
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-	<scm>
-		<connection>scm:git:https://github.com/lutece-platform/lutece-build-library-sqlutils.git</connection>
-		<developerConnection>scm:git:https://github.com/lutece-platform/lutece-build-library-sqlutils.git</developerConnection>
-		<url>https://github.com/lutece-platform/lutece-build-library-sqlutils.git</url>
-		<tag>HEAD</tag>
-	</scm>
+        <snapshotRepository>
+            <uniqueVersion>true</uniqueVersion>
+            <id>lutece_snapshots_repository</id>
+            <url>https://dev.lutece.paris.fr/nexus/content/repositories/lutece_snapshots_repository</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>

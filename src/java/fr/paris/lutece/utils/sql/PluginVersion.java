@@ -22,10 +22,6 @@ public class PluginVersion implements Comparable<PluginVersion>
         return _isUnstable;
     }
 
-    public void setUnstable(boolean _isUnstable) {
-        this._isUnstable = _isUnstable;
-    }
-
     private PluginVersion(String version)
     {
         if (version != null)
@@ -42,7 +38,7 @@ public class PluginVersion implements Comparable<PluginVersion>
                     if (version.toUpperCase().contains("-" + suffixe))
                     {
                         this._isUnstable = true;
-                        version = version.split("-")[0];;
+                        version = version.split("-")[0];
                         break;
                     }
                 }
